@@ -1,0 +1,258 @@
+# Intake Desk semantic layer.
+#
+# This one file drives the extraction schema sent to Claude, the validation
+# rules, the screens, who can see or change each field, the workflow, and the
+# vocabulary the view agent is allowed to use. Change behaviour here, not in
+# code. The app re-reads this file when it changes.
+
+version: 1
+
+app:
+  name: Intake Desk
+  org: Sunrise Home Health
+  note: Synthetic data only. No real patients.
+
+roles:
+  intake:
+    label: Intake
+    can: [view_queue, view_referral, view_document, upload, edit_fields, change_status, assign_owner, create_view, view_audit]
+  billing:
+    label: Billing
+    can: [view_queue, view_referral, edit_fields, create_view]
+  clinician:
+    label: Clinician
+    can: [view_queue, view_referral, view_document, create_view]
+
+# Demo users. In production these come from SSO; the role always comes from here.
+users:
+  priya: { name: Priya Nair, role: intake }
+  marcus: { name: Marcus Hale, role: billing }
+  dana: { name: Dana Reyes, role: clinician }
+
+defaults:
+  edit: [intake]
+
+statuses:
+  new: { label: New, tone: slate }
+  missing_info: { label: Missing info, tone: amber }
+  ready: { label: Ready, tone: green }
+  scheduled: { label: Scheduled, tone: indigo }
+
+workflow:
+  # Model confidence below this goes to a person before the referral can be Ready.
+  review_threshold: 0.85
+  schedule:
+    roles: [intake]
+    from: [ready]
+
+# Access per role: full, masked or hidden. PHI fields must list every role.
+# Hidden fields never leave the server for that role, in the API or the UI.
+concepts:
+  patient:
+    label: Patient
+    fields:
+      patient_name:
+        label: Patient name
+        type: string
+        required: true
+        phi: true
+        mask: name
+        compare: name
+        access: { intake: full, billing: full, clinician: full }
+        extract: Patient's full name as written.
+      date_of_birth:
+        label: Date of birth
+        type: date
+        required: true
+        phi: true
+        mask: year
+        rules: [{ check: past_date }]
+        access: { intake: full, billing: full, clinician: full }
+        extract: Patient's date of birth. A two-digit year means 19xx.
+      phone:
+        label: Phone
+        type: phone
+        phi: true
+        mask: last4
+        compare: digits
+        rules: [{ check: phone_us }]
+        access: { intake: full, billing: masked, clinician: full }
+        extract: Best phone number to reach the patient or their caregiver.
+      address:
+        label: Home address
+        type: string
+        required: true
+        phi: true
+        mask: redact
+        compare: address
+        access: { intake: full, billing: hidden, clinician: full }
+        extract: Address where care will be given, including the apartment number.
+
+  payer:
+    label: Insurance
+    fields:
+      payer_name:
+        label: Payer
+        type: string
+        required: true
+        edit: [intake, billing]
+        extract: Insurance plan name as written, for example "Medicare" or "Aetna Medicare Advantage".
+      payer_type:
+        label: Payer type
+        type: enum
+        values: [medicare, medicare_advantage, medicaid, commercial, self_pay]
+        value_labels:
+          medicare: Medicare
+          medicare_advantage: Medicare Advantage
+          medicaid: Medicaid
+          commercial: Commercial
+          self_pay: Self-pay
+        required: true
+        edit: [intake, billing]
+        extract: >-
+          Category of the plan. Traditional Medicare is medicare. A private plan that
+          replaces Medicare is medicare_advantage. Managed Medicaid is medicaid.
+      member_id:
+        label: Member ID
+        type: string
+        required: true
+        phi: true
+        mask: last4
+        compare: id
+        rules:
+          - check: mbi
+            when: { field: payer_type, equals: medicare }
+        access: { intake: full, billing: full, clinician: masked }
+        edit: [intake, billing]
+        extract: Member or subscriber ID exactly as written. For traditional Medicare this is the MBI.
+
+  referral:
+    label: Referral
+    fields:
+      referral_date:
+        label: Referral date
+        type: date
+        rules: [{ check: past_date }]
+        extract: Date the referral or order was written.
+      referral_source:
+        label: Referred by
+        type: string
+        compare: text
+        extract: Hospital, practice or clinic that sent the referral.
+      referring_physician:
+        label: Ordering clinician
+        type: string
+        required: true
+        compare: name
+        extract: Name of the physician or nurse practitioner who ordered home health, with credentials as written.
+      physician_npi:
+        label: NPI
+        type: string
+        required: true
+        compare: id
+        rules: [{ check: npi }]
+        extract: The ordering clinician's 10-digit NPI exactly as written.
+
+  clinical:
+    label: Clinical
+    fields:
+      primary_diagnosis:
+        label: Primary diagnosis
+        type: text
+        required: true
+        phi: true
+        access: { intake: full, billing: full, clinician: full }
+        extract: The first-listed diagnosis in words, without its code.
+      icd10_codes:
+        label: ICD-10 codes
+        type: code_list
+        required: true
+        phi: true
+        rules: [{ check: icd10 }]
+        access: { intake: full, billing: full, clinician: full }
+        extract: Every ICD-10-CM code on the referral, exactly as written, even if one looks wrong.
+      clinical_notes:
+        label: Clinical summary
+        type: text
+        phi: true
+        access: { intake: full, billing: hidden, clinician: full }
+        extract: >-
+          The clinical summary as written: reason for referral, key needs and caregiver
+          situation. Copy it, don't rewrite it.
+      homebound:
+        label: Homebound
+        type: boolean
+        required_when: { field: payer_type, equals: medicare }
+        extract: yes if the referral says the patient is homebound, no if it says they are not.
+      face_to_face_date:
+        label: Face-to-face date
+        type: date
+        required_when: { field: payer_type, equals: medicare }
+        rules: [{ check: past_date }]
+        extract: Date of the face-to-face encounter that supports home health. Leave empty if the note is still to follow.
+
+  order:
+    label: Order
+    fields:
+      services_ordered:
+        label: Services ordered
+        type: multi_enum
+        values: [skilled_nursing, physical_therapy, occupational_therapy, speech_therapy, home_health_aide, medical_social_work]
+        value_labels:
+          skilled_nursing: Skilled nursing
+          physical_therapy: Physical therapy
+          occupational_therapy: Occupational therapy
+          speech_therapy: Speech therapy
+          home_health_aide: Home health aide
+          medical_social_work: Medical social work
+        required: true
+        extract: Every discipline ordered. Checked boxes count, unchecked boxes do not.
+      order_signed:
+        label: Order signed
+        type: boolean
+        required: true
+        extract: >-
+          yes only if the ordering clinician signed: a handwritten mark on the signature
+          line or an electronic signature statement. A blank line or a typed name alone is no.
+      signature_date:
+        label: Signature date
+        type: date
+        rules: [{ check: past_date }]
+        extract: Date next to the signature. Leave empty if unsigned.
+
+# Flags beyond the built-in missing, invalid and needs-review checks.
+flags:
+  unsigned_order:
+    label: Unsigned order
+    blocking: true
+    when: { field: order_signed, equals: false }
+
+# First match wins. {labels} lists the fields behind the matching flags.
+next_actions:
+  - when: extraction_failed
+    text: Extraction failed. Enter the fields by hand.
+  - when: unsigned_order
+    text: Request signed order from {referring_physician}
+  - when: missing:face_to_face_date
+    text: Request face-to-face note from {referring_physician}
+  - when: missing:*
+    text: "Get missing info: {labels}"
+  - when: invalid:*
+    text: "Fix {labels}"
+  - when: review:*
+    text: "Check what the AI read: {labels}"
+  - when: status:ready
+    text: Schedule start-of-care visit
+  - when: status:scheduled
+    text: Start of care {start_of_care}
+
+queue:
+  columns: [ref_no, patient_name, payer_name, status, next_action, owner, received_at]
+
+# Vocabulary hints for the agent that turns plain English into saved views.
+view_agent:
+  hints:
+    - '"Medicare" on its own means traditional Medicare (payer_type medicare). Add medicare_advantage only when the request mentions Advantage plans.'
+    - '"Missing a signed order", "unsigned" or "needs a signature" means the unsigned_order flag.'
+    - '"Stuck" or "waiting on info" means status missing_info.'
+    - '"Mine" means owner equals the person asking.'
