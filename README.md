@@ -21,6 +21,119 @@ All patient data in this repo is made up.
 
 The browser talks to the API routes, which pass every request through the service layer. There, permissions are checked, the two Claude agents are called (extraction for PDFs, the view builder for plain-English screens), and records are read from and written to Postgres. `config/intake.yaml` drives the fields, roles, rules and agent schemas. The source is [`docs/architecture.svg`](docs/architecture.svg).
 
+### How the database works
+
+All storage goes through one interface, `Store` in `src/lib/store.ts`. It has two backends:
+
+- **`PgStore`** (`src/lib/store-pg.ts`) talks to Postgres through a `pg` connection pool. It's used when `DATABASE_URL` is set.
+- **`MemoryStore`** keeps everything in memory and seeds itself on start. It's used when `DATABASE_URL` is empty, and in most tests.
+
+The service layer never writes SQL itself, so both backends behave the same. `npm run db:setup` runs `db/schema.sql`, which is safe to run more than once. It creates four tables:
+
+| Table | What it holds |
+| --- | --- |
+| `referrals` | One row per referral. `ref_no` comes from a sequence (`R-1001`, `R-1002`…). `status`, `owner` and `start_of_care` are plain columns. Everything Claude read lives in `data` (JSONB), the problems found live in `flags` (JSONB), and how the extraction went lives in `extraction` (JSONB: model, time taken, whether the fallback was used, any error). |
+| `documents` | The original PDF as `bytea`, linked to its referral with a foreign key that cascades on delete. `sha256` is unique. |
+| `saved_views` | Views made by the view agent: the checked config as JSONB, the YAML shown on screen, the English request, and who made it with which role. |
+| `audit_log` | One row for every view or change, allowed or denied: who, which role, what action, which referral, and which **field names**. It never stores field values. |
+
+Each field in `referrals.data` is stored like this:
+
+```json
+"member_id": {
+  "value": "1EG4-TE5-MK72",
+  "confidence": 0.97,
+  "evidence": "Medicare ID: 1EG4-TE5-MK72",
+  "source": "model",
+  "verified": false
+}
+```
+
+When a person edits a field, `source` becomes `"human"`, `confidence` becomes `1` and `verified` becomes `true`. When a person confirms the AI's value without changing it, only `verified` flips to `true`.
+
+How the database enforces the rules:
+
+- **Duplicate faxes.** Uploading creates the referral row and the document row in one transaction. If the file's hash is already there, the transaction rolls back and the existing referral opens instead. If two copies are uploaded at the same moment, the unique index on `sha256` lets only one win, and the other gets the winner's referral.
+- **Append-only audit log.** Triggers on `audit_log` raise an error on any `UPDATE`, `DELETE` or `TRUNCATE`, so not even the app can rewrite history.
+- **Queries on JSON.** GIN indexes on `data` and `flags` let you query flags and fields in SQL directly:
+
+  ```sql
+  select ref_no from referrals where flags @> '[{"key": "unsigned_order"}]';
+  select ref_no from referrals where data @> '{"payer_type": {"value": "medicare"}}';
+  ```
+
+- **No patient data leaks out.** Rows are read in full on the server. `access.ts` then masks or drops fields for the viewer's role before anything is sent to the browser.
+
+### How the AI agents work
+
+Both agents call the Claude API with **structured outputs** (`output_config.format: json_schema`), so Claude has to answer in JSON that matches a schema. Both schemas are built from `config/intake.yaml` when the call is made. They hold field names and allowed values, never patient data.
+
+#### Agent 1: Extraction (`src/lib/extract.ts`)
+
+Runs every time a PDF is uploaded.
+
+1. **Build the schema.** Each field in the YAML becomes `{ value, confidence, evidence }`. The `value` type follows the field: yes/no/not_stated for booleans, the allowed list for enums, arrays for code lists, `YYYY-MM-DD` for dates. The field's `extract:` line becomes its description, so Claude knows what to look for.
+2. **Send the PDF.** The fax goes to Claude as a base64 `document` block, with a system prompt that sets the ground rules:
+   - Copy names, IDs and codes exactly, typos included.
+   - Never guess. Leave a field empty when the fax doesn't say.
+   - Give an honest confidence, below 0.85 when unsure.
+   - Quote the fax as evidence, in under 20 words.
+   - An order counts as signed only if there's a mark or an e-signature on the line.
+3. **Retry and fall back.** The SDK retries short-lived errors with backoff. If `claude-sonnet-5-5` still fails, `claude-haiku-4-5-20251001` gets a turn. Either model can be changed with `ANTHROPIC_MODEL` and `ANTHROPIC_FALLBACK_MODEL`.
+4. **Normalize.** The JSON is cleaned up before it's saved:
+   - "yes"/"no" become booleans and enum casing is fixed.
+   - `MM/DD/YYYY` dates become ISO dates and ICD-10 codes are upper-cased.
+   - Duplicates are dropped, confidence is clamped to 0–1, and evidence is trimmed.
+5. **Check and flag.** `workflow.ts` runs every field through the YAML rules and raises flags:
+   - `missing:` for a required field that's empty
+   - `invalid:` for a field that fails a rule, such as a bad NPI check digit, Medicare ID format or ICD-10 shape
+   - `review:` for anything below the 0.85 confidence threshold that no person has checked yet
+   - custom flags such as `unsigned_order`
+
+   The status follows from the flags:
+   - any blocking flag means **Missing info**
+   - only review flags means **New**
+   - no flags means **Ready**
+
+If both models fail, or there's no API key, the referral and its PDF are still saved. It gets an `extraction_failed` flag so intake can fill it in by hand. Logs carry the referral number and error only, never patient data.
+
+#### Agent 2: View builder (`src/lib/views.ts`)
+
+Runs when someone types a request like "my Medicare referrals still waiting on info".
+
+1. **Build a catalog for this person.** The catalog lists:
+   - the fields their role can see **in full**, each with the operators it allows (`eq`, `in`, `before`, `has`, `is_empty`…)
+   - the statuses, owners, flags and columns they may use
+   - today's date and who "me" is
+
+   Masked and hidden fields are left out, so the agent can't filter on them.
+2. **Ask Claude.** Claude gets the catalog, the vocabulary hints from `view_agent.hints` (such as "Medicare" meaning traditional Medicare, or "stuck" meaning `missing_info`) and the request. Claude answers with a title, filters, columns and a sort. The schema's enums come from the catalog, so Claude can only name fields and columns that exist for this role.
+3. **Check it.** `validateView` makes sure that:
+   - every field exists and is fully visible to the role
+   - every operator suits its field type
+   - every value is allowed
+   - every column can be shown to the role
+4. **Retry once.** If the checks fail, the errors and the rejected attempt go back to Claude for one more try. If that also fails, the request is refused with a 422 and logged as denied.
+5. **Save and run.** The checked view is saved in `saved_views` with a readable YAML copy, for example:
+
+   ```yaml
+   view: medicare-referrals-missing-a-signed-order
+   title: Medicare referrals missing a signed order
+   filters:
+     - field: payer_type
+       op: eq
+       value: medicare
+     - field: flags
+       op: has
+       value: unsigned_order
+   columns: [ref_no, patient_name, status, next_action, owner]
+   sort: { field: received_at, dir: desc }
+   ```
+
+   Each time the view is opened, the role is checked again. The filters run on the server against the queue, and the results are masked for the viewer like any other screen.
+
+The agent never writes SQL and never sees patient data. All it produces is a config, and the app checks that config before running it.
+
 ## Run it
 
 ```bash
