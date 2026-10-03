@@ -1,0 +1,263 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .t  { font-size: 18px; font-weight: 700; fill: #0f172a; }
+      .st { font-size: 13px; font-weight: 700; fill: #0f172a; }
+      .b  { font-size: 13px; fill: #334155; }
+      .s  { font-size: 12px; fill: #334155; }
+      .m  { font-size: 12px; fill: #334155; font-family: Menlo, 'SF Mono', monospace; }
+      .k  { font-size: 12px; fill: #64748b; }
+      .lbl{ font-size: 12px; fill: #475569; font-weight: 600; }
+      .line { stroke: #475569; stroke-width: 2; fill: none; }
+      .dash { stroke: #b45309; stroke-width: 2; fill: none; stroke-dasharray: 6 5; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1180" fill="#ffffff"/>
+  <text x="40" y="44" font-size="26" font-weight="800" fill="#0f172a">Intake Desk: how the app, the AI agents, the APIs and the database fit together</text>
+  <text x="40" y="66" class="k">Next.js 16 · Claude API (@anthropic-ai/sdk) · PostgreSQL (pg) · config/intake.yaml semantic layer · synthetic data only</text>
+
+  <!-- ============ Browser ============ -->
+  <rect x="400" y="90" width="740" height="110" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="420" y="118" class="t">Browser: Next.js + React 19 pages</text>
+  <text x="420" y="142" class="b">Queue  <tspan class="m">/</tspan>   ·   Referral detail  <tspan class="m">/referrals/[id]</tspan>   ·   Saved view  <tspan class="m">/views/[slug]</tspan>   ·   Audit  <tspan class="m">/audit</tspan></text>
+  <text x="420" y="164" class="b">Upload zone · editable field rows · "Describe a view" box · role switcher</text>
+  <text x="420" y="186" class="k">Demo users and roles: Priya (intake) · Marcus (billing) · Dana (clinician)</text>
+
+  <!-- ============ API ============ -->
+  <rect x="400" y="250" width="740" height="120" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="420" y="278" class="t">API routes: src/app/api</text>
+  <text x="420" y="302" class="m">POST      /api/session</text><text x="640" y="302" class="s">sign in, HMAC-signed cookie</text>
+  <text x="420" y="324" class="m">GET POST  /api/referrals</text><text x="640" y="324" class="s">queue · upload a PDF</text>
+  <text x="420" y="346" class="m">GET PATCH /api/referrals/[id]</text><text x="640" y="346" class="s">detail · edit fields, status, owner</text>
+  <text x="820" y="302" class="m">GET       /api/referrals/[id]/document</text>
+  <text x="820" y="324" class="m">GET POST  /api/views</text><text x="1000" y="324" class="s">list · create</text>
+  <text x="820" y="346" class="m">GET       /api/audit</text><text x="1000" y="346" class="s">audit log</text>
+
+  <!-- ============ Service ============ -->
+  <rect x="400" y="420" width="740" height="210" rx="12" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+  <text x="420" y="448" class="t">Service layer: src/lib/service.ts</text>
+
+  <rect x="420" y="462" width="225" height="74" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="432" y="482" class="st">assertCan</text>
+  <text x="432" y="500" class="s">Checks the role's permission</text>
+  <text x="432" y="517" class="s">and logs allowed or denied</text>
+
+  <rect x="657" y="462" width="225" height="74" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="669" y="482" class="st">uploadReferral</text>
+  <text x="669" y="500" class="s">PDF check · sha256 dedupe</text>
+  <text x="669" y="517" class="s">extract → flags → save</text>
+
+  <rect x="894" y="462" width="226" height="74" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="906" y="482" class="st">createView · runView</text>
+  <text x="906" y="500" class="s">Ask the view agent, validate,</text>
+  <text x="906" y="517" class="s">save; run filters on queue</text>
+
+  <rect x="420" y="546" width="225" height="70" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="432" y="566" class="st">access.ts</text>
+  <text x="432" y="584" class="s">Per role: full · masked · hidden</text>
+  <text x="432" y="601" class="s">Hidden fields never leave server</text>
+
+  <rect x="657" y="546" width="225" height="70" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="669" y="566" class="st">workflow.ts · rules.ts</text>
+  <text x="669" y="584" class="s">Validation, flags, status,</text>
+  <text x="669" y="601" class="s">next action text</text>
+
+  <rect x="894" y="546" width="226" height="70" rx="8" fill="#fff" stroke="#cbd5e1"/>
+  <text x="906" y="566" class="st">updateFields · schedule</text>
+  <text x="906" y="584" class="s">Human edits mark a field</text>
+  <text x="906" y="601" class="s">verified · assign owner</text>
+
+  <!-- ============ Database ============ -->
+  <rect x="400" y="690" width="740" height="380" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="420" y="718" class="t">Database: Store interface (store.ts)</text>
+  <text x="420" y="740" class="b"><tspan class="m">PgStore</tspan> (store-pg.ts) → PostgreSQL when <tspan class="m">DATABASE_URL</tspan> is set, otherwise <tspan class="m">MemoryStore</tspan> that seeds itself</text>
+
+  <!-- referrals -->
+  <rect x="420" y="760" width="170" height="295" rx="8" fill="#fff" stroke="#16a34a"/>
+  <rect x="420" y="760" width="170" height="28" rx="8" fill="#dcfce7"/>
+  <text x="432" y="779" class="st">referrals</text>
+  <text x="432" y="808" class="m">id uuid PK</text>
+  <text x="432" y="826" class="m">ref_no  R-1001…</text>
+  <text x="432" y="844" class="m">status · owner</text>
+  <text x="432" y="862" class="m">start_of_care</text>
+  <text x="432" y="880" class="m">data jsonb</text>
+  <text x="440" y="896" class="k">value, confidence,</text>
+  <text x="440" y="911" class="k">evidence, source,</text>
+  <text x="440" y="926" class="k">verified per field</text>
+  <text x="432" y="946" class="m">flags jsonb</text>
+  <text x="432" y="964" class="m">extraction jsonb</text>
+  <text x="440" y="980" class="k">model, ms, fallback</text>
+  <text x="432" y="1006" class="s">GIN indexes on</text>
+  <text x="432" y="1022" class="s">data and flags</text>
+
+  <!-- documents -->
+  <rect x="603" y="760" width="170" height="295" rx="8" fill="#fff" stroke="#16a34a"/>
+  <rect x="603" y="760" width="170" height="28" rx="8" fill="#dcfce7"/>
+  <text x="615" y="779" class="st">documents</text>
+  <text x="615" y="808" class="m">id uuid PK</text>
+  <text x="615" y="826" class="m">referral_id FK</text>
+  <text x="623" y="842" class="k">→ referrals, cascade</text>
+  <text x="615" y="862" class="m">filename · mime</text>
+  <text x="615" y="880" class="m">sha256 UNIQUE</text>
+  <text x="623" y="896" class="k">same fax twice =</text>
+  <text x="623" y="911" class="k">same referral</text>
+  <text x="615" y="931" class="m">bytes bytea</text>
+  <text x="623" y="947" class="k">the original PDF</text>
+
+  <!-- saved_views -->
+  <rect x="786" y="760" width="170" height="295" rx="8" fill="#fff" stroke="#16a34a"/>
+  <rect x="786" y="760" width="170" height="28" rx="8" fill="#dcfce7"/>
+  <text x="798" y="779" class="st">saved_views</text>
+  <text x="798" y="808" class="m">slug PK</text>
+  <text x="798" y="826" class="m">title</text>
+  <text x="798" y="844" class="m">config jsonb</text>
+  <text x="806" y="860" class="k">filters, columns, sort</text>
+  <text x="798" y="880" class="m">yaml</text>
+  <text x="798" y="898" class="m">prompt</text>
+  <text x="806" y="914" class="k">the English request</text>
+  <text x="798" y="934" class="m">created_by</text>
+  <text x="798" y="952" class="m">created_role</text>
+
+  <!-- audit_log -->
+  <rect x="969" y="760" width="156" height="295" rx="8" fill="#fff" stroke="#16a34a"/>
+  <rect x="969" y="760" width="156" height="28" rx="8" fill="#dcfce7"/>
+  <text x="981" y="779" class="st">audit_log</text>
+  <text x="981" y="808" class="m">id bigserial</text>
+  <text x="981" y="826" class="m">at · actor · role</text>
+  <text x="981" y="844" class="m">action</text>
+  <text x="981" y="862" class="m">outcome</text>
+  <text x="989" y="878" class="k">allowed | denied</text>
+  <text x="981" y="898" class="m">referral_id</text>
+  <text x="981" y="916" class="m">fields</text>
+  <text x="989" y="932" class="k">names only, never</text>
+  <text x="989" y="947" class="k">patient values</text>
+  <text x="981" y="990" class="st" fill="#b91c1c">Append-only</text>
+  <text x="981" y="1007" class="s">Triggers block</text>
+  <text x="981" y="1023" class="s">UPDATE, DELETE</text>
+  <text x="981" y="1039" class="s">and TRUNCATE</text>
+
+  <!-- relation line referrals ← documents -->
+  <path d="M603,826 L590,826" class="line"/>
+
+  <!-- ============ Config (left) ============ -->
+  <rect x="40" y="250" width="320" height="540" rx="12" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+  <text x="60" y="278" class="t">Semantic layer</text>
+  <text x="60" y="298" class="m">config/intake.yaml</text>
+  <text x="60" y="320" class="k">One file drives behaviour; re-read on change</text>
+  <text x="60" y="352" class="st">roles &amp; users</text>
+  <text x="60" y="370" class="s">intake · billing · clinician + permissions</text>
+  <text x="60" y="400" class="st">fields (patient, payer, clinical, order…)</text>
+  <text x="60" y="418" class="s">type, required, PHI, mask style,</text>
+  <text x="60" y="435" class="s">access per role, who can edit</text>
+  <text x="60" y="465" class="st">extract instructions</text>
+  <text x="60" y="483" class="s">become the JSON schema sent to Claude</text>
+  <text x="60" y="513" class="st">rules</text>
+  <text x="60" y="531" class="s">NPI, Medicare MBI, ICD-10, US phone,</text>
+  <text x="60" y="548" class="s">past dates, conditional "required"</text>
+  <text x="60" y="578" class="st">statuses · flags · next_actions</text>
+  <text x="60" y="596" class="s">new → missing_info → ready → scheduled</text>
+  <text x="60" y="613" class="s">unsigned_order is a blocking flag</text>
+  <text x="60" y="643" class="st">workflow.review_threshold: 0.85</text>
+  <text x="60" y="661" class="s">AI confidence below it needs a person</text>
+  <text x="60" y="691" class="st">view_agent.hints</text>
+  <text x="60" y="709" class="s">"Medicare" = traditional Medicare,</text>
+  <text x="60" y="726" class="s">"stuck" = missing_info, "mine" = owner</text>
+  <text x="60" y="760" class="k">Read by config.ts on every request</text>
+
+  <!-- ============ Scripts (left bottom) ============ -->
+  <rect x="40" y="840" width="320" height="230" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+  <text x="60" y="868" class="t">Scripts &amp; setup</text>
+  <text x="60" y="895" class="m">docker compose up -d</text><text x="232" y="895" class="s">Postgres :5433</text>
+  <text x="60" y="918" class="m">npm run db:setup</text><text x="232" y="918" class="s">runs schema.sql</text>
+  <text x="60" y="941" class="m">npm run db:seed</text><text x="232" y="941" class="s">loads referrals</text>
+  <text x="60" y="964" class="m">npm run db:reset</text><text x="232" y="964" class="s">setup + seed</text>
+  <text x="60" y="987" class="m">referrals:generate</text><text x="232" y="987" class="s">12 PDFs, pdf-lib</text>
+  <text x="60" y="1015" class="k">data/referrals/*.pdf + data/answer-key.json</text>
+  <text x="60" y="1035" class="k">are synthetic test fixtures</text>
+
+  <!-- ============ Claude API (right top) ============ -->
+  <rect x="1190" y="90" width="370" height="110" rx="12" fill="#faf5ff" stroke="#9333ea" stroke-width="2"/>
+  <text x="1210" y="118" class="t">Claude API (Anthropic)</text>
+  <text x="1210" y="142" class="s"><tspan class="m">messages.create</tspan> with structured output</text>
+  <text x="1210" y="160" class="s">(<tspan class="m">output_config.format: json_schema</tspan>)</text>
+  <text x="1210" y="182" class="k">SDK retries with backoff · key: ANTHROPIC_API_KEY</text>
+
+  <!-- ============ Extraction agent ============ -->
+  <rect x="1190" y="250" width="335" height="250" rx="12" fill="#faf5ff" stroke="#9333ea" stroke-width="2"/>
+  <text x="1210" y="278" class="t">AI agent 1: Extraction</text>
+  <text x="1210" y="298" class="m">src/lib/extract.ts</text>
+  <text x="1210" y="324" class="st">In:</text><text x="1240" y="324" class="s">referral PDF as a document block</text>
+  <text x="1210" y="346" class="st">Model:</text><text x="1262" y="346" class="m">claude-sonnet-5-5</text>
+  <text x="1210" y="366" class="st">Fallback:</text><text x="1278" y="366" class="m">claude-haiku-4-5</text>
+  <text x="1210" y="390" class="st">Out:</text><text x="1245" y="390" class="s">one object per YAML field:</text>
+  <text x="1226" y="408" class="m">value · confidence · evidence</text>
+  <text x="1210" y="432" class="s">Copies names and codes exactly; never</text>
+  <text x="1210" y="449" class="s">guesses. Values are normalized after.</text>
+  <text x="1210" y="473" class="s">On failure: saved anyway, flagged</text>
+  <text x="1210" y="490" class="s">"extraction_failed", fill in by hand</text>
+
+  <!-- ============ View agent ============ -->
+  <rect x="1190" y="540" width="335" height="250" rx="12" fill="#faf5ff" stroke="#9333ea" stroke-width="2"/>
+  <text x="1210" y="568" class="t">AI agent 2: View builder</text>
+  <text x="1210" y="588" class="m">src/lib/views.ts</text>
+  <text x="1210" y="614" class="st">In:</text><text x="1240" y="614" class="s">plain-English request, e.g.</text>
+  <text x="1226" y="632" class="s">"my Medicare referrals still stuck"</text>
+  <text x="1210" y="652" class="s">+ catalog of fields this role may see</text>
+  <text x="1210" y="669" class="s">+ vocabulary hints from the YAML</text>
+  <text x="1210" y="693" class="st">Out:</text><text x="1245" y="693" class="s">filters · columns · sort</text>
+  <text x="1210" y="713" class="s">Schema enums limit it to the catalog.</text>
+  <text x="1210" y="737" class="s">validateView checks it; errors go back</text>
+  <text x="1210" y="754" class="s">to the agent for one retry, then it is</text>
+  <text x="1210" y="771" class="s">stored as YAML in saved_views.</text>
+
+  <!-- ============ Evals ============ -->
+  <rect x="1190" y="840" width="370" height="230" rx="12" fill="#fdf4ff" stroke="#c026d3" stroke-width="2"/>
+  <text x="1210" y="868" class="t">Evals: <tspan class="m" font-size="15">npm run eval</tspan></text>
+  <text x="1210" y="895" class="s">Runs the extraction agent on the 12</text>
+  <text x="1210" y="912" class="s">synthetic referral PDFs and scores it</text>
+  <text x="1210" y="929" class="s">against <tspan class="m">data/answer-key.json</tspan>:</text>
+  <text x="1226" y="953" class="s">• field-by-field accuracy</text>
+  <text x="1226" y="972" class="s">• flags right or wrong</text>
+  <text x="1226" y="991" class="s">• does the 0.85 confidence threshold</text>
+  <text x="1236" y="1008" class="s">separate right answers from shaky ones</text>
+  <text x="1210" y="1035" class="m">--model  --only 10,11  --out file.json</text>
+
+  <!-- ============ Arrows ============ -->
+  <!-- browser <-> api -->
+  <path d="M770,200 L770,248" class="line" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="782" y="230" class="lbl">fetch · JSON · session cookie</text>
+  <!-- api -> service -->
+  <path d="M770,370 L770,418" class="line" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="782" y="400" class="lbl">getContext() → actor + role</text>
+  <!-- service <-> store -->
+  <path d="M770,630 L770,688" class="line" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <text x="782" y="664" class="lbl">read / write records · append audit</text>
+  <!-- service -> extraction -->
+  <path d="M1140,480 L1188,400" class="line" marker-end="url(#arr)"/>
+  <text x="1146" y="418" class="lbl">PDF</text>
+  <!-- service -> view agent -->
+  <path d="M1140,590 L1188,640" class="line" marker-end="url(#arr)"/>
+  <text x="1143" y="636" class="lbl">ask</text>
+  <!-- extraction -> claude -->
+  <path d="M1357,250 L1357,202" class="line" marker-start="url(#arr)" marker-end="url(#arr)"/>
+  <!-- view agent -> claude (right gutter) -->
+  <path d="M1525,665 L1545,665 L1545,202" class="line" marker-end="url(#arr)"/>
+  <!-- eval -> extraction (right gutter, separate) -->
+  <path d="M1560,950 L1580,950 L1580,180 L1562,180" class="line" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+  <text x="1588" y="560" class="lbl" transform="rotate(90 1588 560)">evals call Claude directly too</text>
+  <!-- yaml -> service -->
+  <path d="M360,520 L398,520" class="dash" marker-end="url(#arr)"/>
+  <text x="364" y="510" class="lbl" fill="#b45309">config</text>
+  <!-- scripts -> db -->
+  <path d="M360,940 L398,940" class="line" marker-end="url(#arr)"/>
+
+  <!-- ============ Upload flow legend ============ -->
+  <rect x="40" y="1100" width="1520" height="60" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="60" y="1124" class="st">Upload flow:</text>
+  <text x="160" y="1124" class="s">① Intake drops a PDF → ② POST /api/referrals → ③ assertCan + sha256 dedupe, PDF stored in documents → ④ extraction agent sends it to Claude</text>
+  <text x="160" y="1146" class="s">⑤ rules.ts + workflow.ts compute flags, status, next action → ⑥ referral row updated, audit_log appended → ⑦ access.ts masks or hides fields for the viewer's role → UI</text>
+</svg>

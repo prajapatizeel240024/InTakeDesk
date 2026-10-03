@@ -15,6 +15,12 @@ All patient data in this repo is made up.
 - **Builds screens from plain English.** Type "show me Medicare referrals missing a signed order." Claude writes a view config. It is checked against the YAML and your role, then opens as a new screen.
 - **Measures itself.** Twelve synthetic referrals come with an answer key. `npm run eval` reports accuracy for each field, whether flags were right, and how well the confidence threshold works.
 
+## Architecture
+
+![Intake Desk architecture: browser, API routes, service layer, AI agents, database](docs/architecture.png)
+
+The browser talks to the API routes, which pass every request through the service layer. There, permissions are checked, the two Claude agents are called (extraction for PDFs, the view builder for plain-English screens), and records are read from and written to Postgres. `config/intake.yaml` drives the fields, roles, rules and agent schemas. The source is [`docs/architecture.svg`](docs/architecture.svg).
+
 ## Run it
 
 ```bash
