@@ -1,0 +1,485 @@
+{
+  "note": "Synthetic data. Every person, ID and number here is made up.",
+  "referrals": [
+    {
+      "id": "01",
+      "file": "referral-01.pdf",
+      "layout": "discharge",
+      "tests": "Clean Medicare discharge referral. Should land in Ready.",
+      "seed": true,
+      "seedOwner": "priya",
+      "seedHoursAgo": 52,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Dolores Whitfield",
+        "date_of_birth": "1941-03-14",
+        "phone": "(914) 555-0142",
+        "address": "41 Linden Ave, Apt 3B, Yonkers, NY 10701",
+        "payer_name": "Medicare",
+        "payer_type": "medicare",
+        "member_id": "4TQ7-HM2-RK58",
+        "referral_date": "2026-09-29",
+        "referral_source": "Westbrook General Hospital",
+        "referring_physician": "Anita Raman, MD",
+        "physician_npi": "1730482969",
+        "primary_diagnosis": "Hypertensive heart disease with heart failure",
+        "icd10_codes": [
+          "I11.0",
+          "I50.32"
+        ],
+        "clinical_notes": "Admitted 9/24 for a CHF exacerbation, discharged 9/28. Needs daily weights, teaching on her new furosemide dose and a low-sodium diet. Lives alone; her daughter checks in most evenings.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-27",
+        "services_ordered": [
+          "skilled_nursing",
+          "physical_therapy"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-09-29"
+      },
+      "expectedFlags": []
+    },
+    {
+      "id": "02",
+      "file": "referral-02.pdf",
+      "layout": "order",
+      "tests": "Medicare order with a blank signature line. Should be flagged as an unsigned order.",
+      "seed": true,
+      "seedOwner": "priya",
+      "seedHoursAgo": 30,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Harold Benning",
+        "date_of_birth": "1938-11-02",
+        "phone": "(718) 555-0177",
+        "address": "2290 Ocean Pkwy, Apt 5D, Brooklyn, NY 11223",
+        "payer_name": "Medicare",
+        "payer_type": "medicare",
+        "member_id": "7CJ2-AF4-WN61",
+        "referral_date": "2026-09-30",
+        "referral_source": "Coney Point Primary Care",
+        "referring_physician": "Paul Wexler, DO",
+        "physician_npi": "1583920479",
+        "primary_diagnosis": "Type 2 diabetes mellitus with hyperglycemia",
+        "icd10_codes": [
+          "E11.65",
+          "Z79.4"
+        ],
+        "clinical_notes": "New insulin start. Needs teaching on glucose checks and insulin injections. Low vision makes self-injection hard; his wife helps.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-26",
+        "services_ordered": [
+          "skilled_nursing"
+        ],
+        "order_signed": false,
+        "signature_date": null
+      },
+      "expectedFlags": [
+        "unsigned_order"
+      ]
+    },
+    {
+      "id": "03",
+      "file": "referral-03.pdf",
+      "layout": "letter",
+      "tests": "Clean Medicaid letter. Seeded with a low-confidence address so it waits for a person to check it.",
+      "seed": true,
+      "seedOwner": null,
+      "seedHoursAgo": 5,
+      "seedConfidence": {
+        "address": 0.62
+      },
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Rosa Delgado-Marsh",
+        "date_of_birth": "1956-07-21",
+        "phone": "(347) 555-0119",
+        "address": "88 Cypress Ave, Apt 2, Bronx, NY 10454",
+        "payer_name": "New York State Medicaid",
+        "payer_type": "medicaid",
+        "member_id": "KX48213T",
+        "referral_date": "2026-10-02",
+        "referral_source": "Mott Haven Community Health Center",
+        "referring_physician": "Grace Oyelaran, MD",
+        "physician_npi": "1204577831",
+        "primary_diagnosis": "Pressure ulcer of sacral region, stage 3",
+        "icd10_codes": [
+          "L89.153",
+          "E11.9"
+        ],
+        "clinical_notes": "Stage 3 sacral pressure injury. Needs wound care three times a week with wet-to-dry dressings, and an aide for bathing. Uses a wheelchair and lives with her husband.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-30",
+        "services_ordered": [
+          "skilled_nursing",
+          "home_health_aide"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-10-02"
+      },
+      "expectedFlags": []
+    },
+    {
+      "id": "04",
+      "file": "referral-04.pdf",
+      "layout": "discharge",
+      "tests": "Medicare Advantage discharge with no member ID. Should be flagged as missing it.",
+      "seed": true,
+      "seedOwner": "priya",
+      "seedHoursAgo": 50,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Walter Okafor",
+        "date_of_birth": "1939-07-22",
+        "phone": "(516) 555-0163",
+        "address": "17 Birch Hollow Rd, Hempstead, NY 11550",
+        "payer_name": "Aetna Medicare Advantage",
+        "payer_type": "medicare_advantage",
+        "member_id": null,
+        "referral_date": "2026-09-28",
+        "referral_source": "St. Aldric Hospital",
+        "referring_physician": "Thomas Kirchner, MD",
+        "physician_npi": "1962045187",
+        "primary_diagnosis": "Aftercare following joint replacement surgery",
+        "icd10_codes": [
+          "Z47.1",
+          "Z96.651"
+        ],
+        "clinical_notes": "Right total knee replacement on 9/24. PT for gait training and range of motion, OT for daily living tasks. Uses a walker at all times; high fall risk.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-24",
+        "services_ordered": [
+          "physical_therapy",
+          "occupational_therapy"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-09-28"
+      },
+      "expectedFlags": [
+        "missing:member_id"
+      ]
+    },
+    {
+      "id": "05",
+      "file": "referral-05.pdf",
+      "layout": "order",
+      "tests": "Clean commercial order. Seeded as already scheduled.",
+      "seed": true,
+      "seedOwner": "priya",
+      "seedHoursAgo": 120,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": 2,
+      "fields": {
+        "patient_name": "Agnes Petrakis",
+        "date_of_birth": "1962-01-09",
+        "phone": "(212) 555-0188",
+        "address": "305 E 86th St, Apt 12F, New York, NY 10028",
+        "payer_name": "UnitedHealthcare Choice Plus",
+        "payer_type": "commercial",
+        "member_id": "902551774",
+        "referral_date": "2026-09-24",
+        "referral_source": "Yorkville Internal Medicine",
+        "referring_physician": "Leah Morrow, NP",
+        "physician_npi": "1348790126",
+        "primary_diagnosis": "Chronic obstructive pulmonary disease with (acute) exacerbation",
+        "icd10_codes": [
+          "J44.1"
+        ],
+        "clinical_notes": "Recent COPD flare with new home oxygen at 2 L. Skilled nursing for respiratory checks and inhaler technique; PT to build endurance.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-23",
+        "services_ordered": [
+          "skilled_nursing",
+          "physical_therapy"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-09-24"
+      },
+      "expectedFlags": []
+    },
+    {
+      "id": "06",
+      "file": "referral-06.pdf",
+      "layout": "letter",
+      "tests": "Medicare letter, unsigned, with the face-to-face note still to follow. Two blockers.",
+      "seed": true,
+      "seedOwner": null,
+      "seedHoursAgo": 26,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Leonard Kowalczyk",
+        "date_of_birth": "1944-05-30",
+        "phone": "(631) 555-0124",
+        "address": "9 Harbor View Ln, Patchogue, NY 11772",
+        "payer_name": "Medicare",
+        "payer_type": "medicare",
+        "member_id": "2DN5-YG7-XP03",
+        "referral_date": "2026-10-01",
+        "referral_source": "Great South Bay Neurology",
+        "referring_physician": "Victor Salinas, MD",
+        "physician_npi": "1827364500",
+        "primary_diagnosis": "Hemiplegia and hemiparesis following cerebral infarction affecting right dominant side",
+        "icd10_codes": [
+          "I69.351"
+        ],
+        "clinical_notes": "Ischemic stroke in August with right-sided weakness and mild expressive aphasia. Needs PT, OT and speech therapy evaluations. Lives with his son.",
+        "homebound": true,
+        "face_to_face_date": null,
+        "services_ordered": [
+          "physical_therapy",
+          "occupational_therapy",
+          "speech_therapy"
+        ],
+        "order_signed": false,
+        "signature_date": null
+      },
+      "expectedFlags": [
+        "missing:face_to_face_date",
+        "unsigned_order"
+      ]
+    },
+    {
+      "id": "07",
+      "file": "referral-07.pdf",
+      "layout": "discharge",
+      "tests": "The NPI has a typo, so it fails the check digit. Should be flagged.",
+      "seed": true,
+      "seedOwner": "priya",
+      "seedHoursAgo": 96,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Beatrice Hollins",
+        "date_of_birth": "1947-09-18",
+        "phone": "(914) 555-0156",
+        "address": "62 Maple Terrace, White Plains, NY 10603",
+        "payer_name": "Humana Gold Plus (HMO)",
+        "payer_type": "medicare_advantage",
+        "member_id": "H51862043",
+        "referral_date": "2026-09-27",
+        "referral_source": "Westchester Valley Hospital",
+        "referring_physician": "Anita Raman, MD",
+        "physician_npi": "1730482962",
+        "primary_diagnosis": "Pneumonia, unspecified organism",
+        "icd10_codes": [
+          "J18.9"
+        ],
+        "clinical_notes": "Hospitalized 9/20 to 9/26 for pneumonia. Skilled nursing for vital signs, oxygen saturation and finishing oral antibiotics; PT for deconditioning.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-26",
+        "services_ordered": [
+          "skilled_nursing",
+          "physical_therapy"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-09-27"
+      },
+      "expectedFlags": [
+        "invalid:physician_npi"
+      ]
+    },
+    {
+      "id": "08",
+      "file": "referral-08.pdf",
+      "layout": "order",
+      "tests": "An ICD-10 code faxed as NI8.4 (letter I for the digit 1). Should be flagged, not silently fixed.",
+      "seed": true,
+      "seedOwner": null,
+      "seedHoursAgo": 74,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Samuel Achterberg",
+        "date_of_birth": "1951-12-03",
+        "phone": "(845) 555-0131",
+        "address": "4 Orchard St, Newburgh, NY 12550",
+        "payer_name": "Empire BlueCross BlueShield PPO",
+        "payer_type": "commercial",
+        "member_id": "YLW884126503",
+        "referral_date": "2026-09-30",
+        "referral_source": "Newburgh Renal Associates",
+        "referring_physician": "Miriam Castellanos, MD",
+        "physician_npi": "1673059287",
+        "primary_diagnosis": "Hypertensive chronic kidney disease",
+        "icd10_codes": [
+          "I12.9",
+          "NI8.4"
+        ],
+        "clinical_notes": "CKD stage 4 with a 1.5 L fluid restriction and a new renal diet. Skilled nursing for blood pressure checks, lab coordination and medication teaching.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-29",
+        "services_ordered": [
+          "skilled_nursing"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-09-30"
+      },
+      "expectedFlags": [
+        "invalid:icd10_codes"
+      ]
+    },
+    {
+      "id": "09",
+      "file": "referral-09.pdf",
+      "layout": "letter",
+      "tests": "Commercial letter with no signature. Unsigned, but not Medicare, so a Medicare view should leave it out.",
+      "seed": true,
+      "seedOwner": "priya",
+      "seedHoursAgo": 9,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Iris Fennimore",
+        "date_of_birth": "1958-04-11",
+        "phone": "(201) 555-0109",
+        "address": "22 Lemoine Ave, Apt 7A, Fort Lee, NJ 07024",
+        "payer_name": "Cigna Open Access Plus",
+        "payer_type": "commercial",
+        "member_id": "U4820177301",
+        "referral_date": "2026-10-02",
+        "referral_source": "Palisades Spine & Pain",
+        "referring_physician": "Paul Wexler, DO",
+        "physician_npi": "1583920479",
+        "primary_diagnosis": "Muscle weakness (generalized)",
+        "icd10_codes": [
+          "M62.81",
+          "R26.81",
+          "Z91.81"
+        ],
+        "clinical_notes": "Two falls in the past month. Needs PT for balance and strength and a home safety evaluation. Walks with a cane.",
+        "homebound": null,
+        "face_to_face_date": null,
+        "services_ordered": [
+          "physical_therapy"
+        ],
+        "order_signed": false,
+        "signature_date": null
+      },
+      "expectedFlags": [
+        "unsigned_order"
+      ]
+    },
+    {
+      "id": "10",
+      "file": "referral-10.pdf",
+      "layout": "discharge",
+      "tests": "Live demo upload. Clean Medicare discharge that should come out Ready.",
+      "seed": false,
+      "seedOwner": null,
+      "seedHoursAgo": 24,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Curtis Vandermeer",
+        "date_of_birth": "1940-02-27",
+        "phone": "(718) 555-0193",
+        "address": "75-12 35th Ave, Apt 4C, Jackson Heights, NY 11372",
+        "payer_name": "Medicare",
+        "payer_type": "medicare",
+        "member_id": "9HV3-PC1-TE47",
+        "referral_date": "2026-10-02",
+        "referral_source": "Elmhurst Bay Medical Center",
+        "referring_physician": "Victor Salinas, MD",
+        "physician_npi": "1827364500",
+        "primary_diagnosis": "Parkinson's disease without dyskinesia, without mention of fluctuations",
+        "icd10_codes": [
+          "G20.A1",
+          "R26.81"
+        ],
+        "clinical_notes": "Worsening gait with a fall at home last week, no injury. PT for gait and fall prevention; OT for daily living tasks and home safety. Lives with his wife.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-30",
+        "services_ordered": [
+          "physical_therapy",
+          "occupational_therapy"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-10-02"
+      },
+      "expectedFlags": []
+    },
+    {
+      "id": "11",
+      "file": "referral-11.pdf",
+      "layout": "order",
+      "tests": "Live demo upload. Medicare order with a blank signature line, the one to flag on camera.",
+      "seed": false,
+      "seedOwner": null,
+      "seedHoursAgo": 24,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Evelyn Takahashi-Brook",
+        "date_of_birth": "1936-08-05",
+        "phone": "(914) 555-0171",
+        "address": "12 Ridgeway Ct, New Rochelle, NY 10804",
+        "payer_name": "Medicare",
+        "payer_type": "medicare",
+        "member_id": "5MR8-JD6-UA92",
+        "referral_date": "2026-10-02",
+        "referral_source": "Sound Shore Senior Care",
+        "referring_physician": "Leah Morrow, NP",
+        "physician_npi": "1348790126",
+        "primary_diagnosis": "Chronic obstructive pulmonary disease, unspecified",
+        "icd10_codes": [
+          "J44.9"
+        ],
+        "clinical_notes": "New nebulizer and oxygen at night. Skilled nursing for respiratory status and medication teaching; an aide for bathing twice a week.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-29",
+        "services_ordered": [
+          "skilled_nursing",
+          "home_health_aide"
+        ],
+        "order_signed": false,
+        "signature_date": null
+      },
+      "expectedFlags": [
+        "unsigned_order"
+      ]
+    },
+    {
+      "id": "12",
+      "file": "referral-12.pdf",
+      "layout": "letter",
+      "tests": "Live demo upload. Informal letter: two-digit birth year and a phone number that is the daughter's.",
+      "seed": false,
+      "seedOwner": null,
+      "seedHoursAgo": 24,
+      "seedConfidence": {},
+      "seedStartOfCareInDays": null,
+      "fields": {
+        "patient_name": "Raymond Lusk",
+        "date_of_birth": "1947-06-01",
+        "phone": "(347) 555-0136",
+        "address": "2104 Grand Concourse, Apt 6D, Bronx, NY 10457",
+        "payer_name": "Fidelis Care Medicaid Managed Care",
+        "payer_type": "medicaid",
+        "member_id": "FC7731025",
+        "referral_date": "2026-10-01",
+        "referral_source": "Concourse Family Medicine",
+        "referring_physician": "Miriam Castellanos, MD",
+        "physician_npi": "1673059287",
+        "primary_diagnosis": "Muscle weakness (generalized)",
+        "icd10_codes": [
+          "M62.81",
+          "R26.89"
+        ],
+        "clinical_notes": "Home from a 10-day hospital stay for sepsis and very deconditioned. Needs PT, and skilled nursing for medication management (12 medications). Lives with his daughter Carla.",
+        "homebound": true,
+        "face_to_face_date": "2026-09-30",
+        "services_ordered": [
+          "physical_therapy",
+          "skilled_nursing"
+        ],
+        "order_signed": true,
+        "signature_date": "2026-10-01"
+      },
+      "expectedFlags": []
+    }
+  ]
+}
